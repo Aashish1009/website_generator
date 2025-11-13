@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import React from 'react'
 import { Button } from './ui/button'
+import { SignInButton } from '@clerk/nextjs'
 
 
 const menuOptions = [{
@@ -25,9 +26,12 @@ const Header = () => {
         ))}
       </div>
       <div>
-        <Button >
+        <SignInButton mode='modal' forceRedirectUrl={"/workspace"}>
+          <Button >
             Get Started
         </Button>
+        </SignInButton>
+
       </div>
     </div>
   )
