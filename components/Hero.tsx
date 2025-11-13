@@ -2,8 +2,12 @@
 
 import React, { useState } from 'react'
 import { Button } from './ui/button'
-import { ArrowUp, HomeIcon, ImagePlusIcon, Key, LayoutDashboard, User } from 'lucide-react'
-import { SignInButton } from '@clerk/nextjs';
+import { ArrowUp, HomeIcon, ImagePlusIcon, Key, LayoutDashboard, Loader2Icon, User } from 'lucide-react'
+import { SignInButton, useUser } from '@clerk/nextjs';
+import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 const suggestions = [
   {
@@ -32,6 +36,35 @@ const suggestions = [
 const Hero = () => {
 
     const [prompt,setprompt]= useState("")
+    const user = useUser();
+    const router = useRouter();
+    const [loading,setloading] = useState(false);
+
+
+    const createNewProject = async () => {
+      setloading(true);
+      const projectId = uuidv4();
+      const frameId = Math.floor(Math.random() * 10000);
+      const messages = [{
+        role: "user",
+        content: prompt
+      }]
+      try {
+        const result = await axios.post('/api/projects',{
+          projectId,
+          frameId,
+          messages
+        })
+        toast.success("Project created successfully")
+        console.log(result.data)
+        router.push(`/playground/${projectId}?frameId=${frameId}`);
+        setloading(false);
+      } catch (error) {
+        toast.error("Something went wrong")
+        console.log(error)
+        setloading(false);
+      }
+    }
   return (
     <div className='flex flex-col gap-4 items-center justify-center h-[80vh]'>
       <h1 className='text-6xl font-bold'>What should we build ?</h1>
@@ -45,9 +78,11 @@ const Hero = () => {
        />
        <div className='flex items-center justify-between'>
         <Button variant={"ghost"}><ImagePlusIcon /></Button>
-        <SignInButton mode='modal' forceRedirectUrl={"/workspace"}>
+        {!user ? <SignInButton mode='modal' forceRedirectUrl={"/workspace"}>
           <Button disabled={!prompt}><ArrowUp /></Button>
-        </SignInButton>
+        </SignInButton>:
+         <Button disabled={!prompt || loading} onClick={createNewProject}>
+          {loading?<Loader2Icon className='animate-spin'/>:<ArrowUp />}</Button>}
        </div>
       </div>
       <div className='flex gap-2'>

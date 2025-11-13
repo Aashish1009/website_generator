@@ -1,8 +1,8 @@
 import Hero from '@/components/Hero'
 import { SidebarProvider } from '@/components/ui/sidebar'
 
-import { AppSidebar } from './AppSidebar'
-import AppHeader from './AppHeader'
+import { AppSidebar } from '../../components/AppSidebar'
+import AppHeader from '../../components/AppHeader'
 
 const page = () => {
   return (
