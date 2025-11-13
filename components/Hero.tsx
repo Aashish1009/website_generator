@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { Button } from './ui/button'
 import { ArrowUp, HomeIcon, ImagePlusIcon, Key, LayoutDashboard, User } from 'lucide-react'
+import { SignInButton } from '@clerk/nextjs';
 
 const suggestions = [
   {
@@ -44,7 +45,9 @@ const Hero = () => {
        />
        <div className='flex items-center justify-between'>
         <Button variant={"ghost"}><ImagePlusIcon /></Button>
-        <Button ><ArrowUp /></Button>
+        <SignInButton mode='modal' forceRedirectUrl={"/workspace"}>
+          <Button disabled={!prompt}><ArrowUp /></Button>
+        </SignInButton>
        </div>
       </div>
       <div className='flex gap-2'>
