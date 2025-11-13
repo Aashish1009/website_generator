@@ -1,7 +1,10 @@
+"use client";
+
 import Image from 'next/image'
-import React from 'react'
+import React, { use } from 'react'
 import { Button } from './ui/button'
-import { SignInButton } from '@clerk/nextjs'
+import { SignInButton, useUser } from '@clerk/nextjs'
+import Link from 'next/link'
 
 
 const menuOptions = [{
@@ -12,6 +15,8 @@ const menuOptions = [{
     path:"/contact-us"
 }]
 const Header = () => {
+
+  const {user}  = useUser();
   return (
     <div className='flex justify-between items-center p-2 shadow-lg'>
       <div className='flex items-center gap-2'>
@@ -26,11 +31,16 @@ const Header = () => {
         ))}
       </div>
       <div>
-        <SignInButton mode='modal' forceRedirectUrl={"/workspace"}>
+       {!user ?  <SignInButton mode='modal' forceRedirectUrl={"/workspace"}> 
           <Button >
             Get Started
         </Button>
-        </SignInButton>
+        </SignInButton>:
+        <Link href={"/workspace"}>
+          <Button>
+            Go to Workspace
+          </Button>
+        </Link>}
 
       </div>
     </div>

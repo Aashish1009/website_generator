@@ -11,14 +11,17 @@ function Provider({
   children: React.ReactNode;
 }>) {
   const [userDetail,setUserDetail] = useState<any>();
-  const user = useUser();
+ const { user } = useUser();
 
-   useEffect(()=>{
-    user &&createNewUser();
-   },[user])
+  useEffect(() => {
+    
+     user && createNewUser();
+    
+  }, [ user?.id]);
 
     const createNewUser = async () =>{
            const result = await axios.post('/api/users',{});
+           setUserDetail(result.data.user);
            console.log(result.data);
 
     }
