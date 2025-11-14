@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import PlaygroundTools from "./PlaygroundTools";
 
 type Props = {
     generatedCode: string;
@@ -6,6 +7,7 @@ type Props = {
 
 function PlaygroundHero({ generatedCode }: Props) {
     const iframeRef = useRef<HTMLIFrameElement>(null);
+    const [selectedScreenSize, SetselectedScreenSize] = React.useState('web');
 
     // Initialize iframe shell once
     useEffect(() => {
@@ -78,11 +80,18 @@ function PlaygroundHero({ generatedCode }: Props) {
     }, [generatedCode]);
 
     return (
-        <iframe
+        <div className="flex-1 p-1 flex justify-between flex-col">
+            <iframe
             ref={iframeRef}
-            className="w-full h-[500px] border rounded"
+            className={`${selectedScreenSize === "web" ? "w-full" : "w-[400px]"} h-[480px] border-2 rounded-xl`}
             sandbox="allow-scripts allow-same-origin"
         />
+
+        <PlaygroundTools selectedScreenSize={selectedScreenSize} SetselectedScreenSize={(v:string)=>SetselectedScreenSize(v)} 
+            generatedCode = {generatedCode}
+            />
+
+        </div>
     );
 }
 

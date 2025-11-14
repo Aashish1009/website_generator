@@ -2,7 +2,7 @@ import React from 'react'
 
 const PlaygroundSetting = () => {
   return (
-    <div className='w-80 border-l-2'>
+    <div className='w-[350px] border-l-2'>
       setting
     </div>
   )
