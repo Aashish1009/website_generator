@@ -3,7 +3,7 @@ import { Button } from './ui/button'
 import { Download, Monitor, SquareArrowOutUpRight, TabletSmartphone, View } from 'lucide-react'
 import ViewCodeBlock from './ViewCodeBlock'
 
-const HtmlCode = `
+ const HtmlCode = `
       <!DOCTYPE html>
       <html lang="en">
       <head>

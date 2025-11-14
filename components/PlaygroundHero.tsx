@@ -1,22 +1,14 @@
+"use client";
+
 import React, { useEffect, useRef } from "react";
 import PlaygroundTools from "./PlaygroundTools";
+import PlaygroundSetting from "./PlaygroundSetting";
 
 type Props = {
     generatedCode: string;
 };
 
-function PlaygroundHero({ generatedCode }: Props) {
-    const iframeRef = useRef<HTMLIFrameElement>(null);
-    const [selectedScreenSize, SetselectedScreenSize] = React.useState('web');
-
-    // Initialize iframe shell once
-    useEffect(() => {
-        if (!iframeRef.current) return;
-        const doc = iframeRef.current.contentDocument;
-        if (!doc) return;
-
-        doc.open();
-        doc.write(`
+const HtmlCode = `
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -57,42 +49,151 @@ function PlaygroundHero({ generatedCode }: Props) {
           <script src="https://unpkg.com/@popperjs/core@2"></script>
           <script src="https://unpkg.com/tippy.js@6"></script>
       </head>
-      <body id="root"></body>
+      <body id="root">
+      </body>
       </html>
-    `);
+    `;
+
+function PlaygroundHero({ generatedCode }: Props) {
+    const iframeRef = useRef<HTMLIFrameElement>(null);
+    const [selectedScreenSize, SetselectedScreenSize] = React.useState('web');
+    const [selectedElement, SetselectedElement] = React.useState<HTMLElement | null>();
+    
+    // Use refs to persist state across re-renders without losing references
+    const hoverElRef = useRef<HTMLElement | null>(null);
+    const selectedElRef = useRef<HTMLElement | null>(null);
+
+    // Initialize iframe shell once
+    useEffect(() => {
+        if (!iframeRef.current) return;
+        const doc = iframeRef.current.contentDocument;
+        if (!doc) return;
+
+        doc.open();
+        doc.write(HtmlCode);
         doc.close();
     }, []);
 
-    // Update body only when code changes
+    // Update content and setup event listeners whenever generatedCode changes
     useEffect(() => {
         if (!iframeRef.current) return;
         const doc = iframeRef.current.contentDocument;
         if (!doc) return;
 
         const root = doc.getElementById("root");
-        if (root) {
-            root.innerHTML =
-                generatedCode
-                    ?.replaceAll("```html", "")
-                    .replaceAll("```", "")
-                    .replace("html", "") ?? "";
+        if (!root) return;
+
+        // Update content - clean up any code block markers
+        const cleanedCode = generatedCode
+            ?.replaceAll("```html", "")
+            .replaceAll("```", "")
+            .trim() ?? "";
+        
+        root.innerHTML = cleanedCode;
+
+        // Clear any previous selections
+        if (selectedElRef.current) {
+            selectedElRef.current.style.outline = "";
+            selectedElRef.current.removeAttribute("contenteditable");
+            selectedElRef.current = null;
         }
+        if (hoverElRef.current) {
+            hoverElRef.current.style.outline = "";
+            hoverElRef.current = null;
+        }
+
+        // Event handlers
+        const handleMouseOver = (e: MouseEvent) => {
+            if (selectedElRef.current) return;
+            const target = e.target as HTMLElement;
+            if (target === root) return; // Don't highlight root itself
+            
+            if (hoverElRef.current && hoverElRef.current !== target) {
+                hoverElRef.current.style.outline = "";
+            }
+            hoverElRef.current = target;
+            hoverElRef.current.style.outline = "2px dotted blue";
+        };
+
+        const handleMouseOut = (e: MouseEvent) => {
+            if (selectedElRef.current) return;
+            if (hoverElRef.current) {
+                hoverElRef.current.style.outline = "";
+                hoverElRef.current = null;
+            }
+        };
+
+        const handleClick = (e: MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const target = e.target as HTMLElement;
+            if (target === root) return; // Don't select root itself
+
+            if (selectedElRef.current && selectedElRef.current !== target) {
+                selectedElRef.current.style.outline = "";
+                selectedElRef.current.removeAttribute("contenteditable");
+            }
+
+            selectedElRef.current = target;
+            selectedElRef.current.style.outline = "2px solid red";
+            selectedElRef.current.setAttribute("contenteditable", "true");
+            selectedElRef.current.focus();
+            SetselectedElement(selectedElRef.current)
+            console.log("Selected element:", selectedElRef.current);
+        };
+
+        const handleBlur = (e: FocusEvent) => {
+            const target = e.target as HTMLElement;
+            console.log("Final edited element:", target.outerHTML);
+        };
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape" && selectedElRef.current) {
+                selectedElRef.current.style.outline = "";
+                selectedElRef.current.removeAttribute("contenteditable");
+                selectedElRef.current.blur();
+                selectedElRef.current = null;
+            }
+        };
+
+        // Attach listeners to root (event delegation)
+        root.addEventListener("mouseover", handleMouseOver);
+        root.addEventListener("mouseout", handleMouseOut);
+        root.addEventListener("click", handleClick);
+        root.addEventListener("blur", handleBlur, true); // Use capture phase for blur
+        doc.addEventListener("keydown", handleKeyDown);
+
+        // Cleanup
+        return () => {
+            root.removeEventListener("mouseover", handleMouseOver);
+            root.removeEventListener("mouseout", handleMouseOut);
+            root.removeEventListener("click", handleClick);
+            root.removeEventListener("blur", handleBlur, true);
+            doc.removeEventListener("keydown", handleKeyDown);
+        };
     }, [generatedCode]);
 
     return (
-        <div className="flex-1 p-1 flex justify-between flex-col">
+       <div className="flex gap-2 w-full">
+         <div className="flex-1 p-1 flex justify-between flex-col">
             <iframe
-            ref={iframeRef}
-            className={`${selectedScreenSize === "web" ? "w-full" : "w-[400px]"} h-[480px] border-2 rounded-xl`}
-            sandbox="allow-scripts allow-same-origin"
-        />
-
-        <PlaygroundTools selectedScreenSize={selectedScreenSize} SetselectedScreenSize={(v:string)=>SetselectedScreenSize(v)} 
-            generatedCode = {generatedCode}
+                ref={iframeRef}
+                className={`${selectedScreenSize === "web" ? "w-full" : "w-[400px]"} h-[480px] border-2 rounded-xl`}
+                sandbox="allow-scripts allow-same-origin"
             />
 
+            <PlaygroundTools 
+                selectedScreenSize={selectedScreenSize} 
+                SetselectedScreenSize={(v: string) => SetselectedScreenSize(v)} 
+                generatedCode={generatedCode}
+            />
         </div>
+       {/* @ts-ignore */}
+        <PlaygroundSetting selectedEl={selectedElement} clearSelection={()=>SetselectedElement(null)} />
+       </div>
     );
 }
 
 export default PlaygroundHero;
+
+

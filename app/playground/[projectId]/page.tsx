@@ -2,9 +2,7 @@
 import PlaygroundChat from '@/components/PlaygroundChat'
 import PlaygroundHeader from '@/components/PlaygroundHeader'
 import PlaygroundHero from '@/components/PlaygroundHero'
-import PlaygroundSetting from '@/components/PlaygroundSetting'
 import axios from 'axios';
-import { Html } from 'next/document';
 import { useParams, useSearchParams } from 'next/navigation'
 import React, { useEffect } from 'react'
 import { toast } from 'sonner';
@@ -232,10 +230,11 @@ if(messages.length >1 && !loading){
       <PlaygroundChat  messages={messages||[]} onSend={(inputMessage:string) =>sendMessage(inputMessage)}
         loading = {loading}/>
       <PlaygroundHero  generatedCode={generatedCode}/>
-      {/* <PlaygroundSetting /> */}
       </div>
     </div>
   )
 }
 
 export default page
+
+
