@@ -1,7 +1,7 @@
 "use client";
 
 import { Messages } from '@/app/playground/[projectId]/page'
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Button } from './ui/button'
 import { ArrowUp } from 'lucide-react'
 
@@ -14,6 +14,11 @@ type Props = {
 const PlaygroundChat = ({messages,onSend,loading}:Props) => {
 
   const [inputMessage,setInputMessage]= React.useState("");
+   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+   useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
 
   const handleSend = ()=>{
     if(!inputMessage.trim()) return;
@@ -38,6 +43,7 @@ const PlaygroundChat = ({messages,onSend,loading}:Props) => {
           </div>
           <span className='text-zinc-800'>working on it</span>
        </div>}
+        <div ref={messagesEndRef}></div>
       </div>
       <div className='flex gap-2 border  p-2 rounded-lg mb-2 items-center '>
         <textarea
