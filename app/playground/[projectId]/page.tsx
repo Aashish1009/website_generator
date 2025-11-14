@@ -226,13 +226,13 @@ if(messages.length >1 && !loading){
   }
     
   return (
-    <div >
+    <div className='h-[90vh]'>
       <PlaygroundHeader />
       <div className='flex'>
       <PlaygroundChat  messages={messages||[]} onSend={(inputMessage:string) =>sendMessage(inputMessage)}
         loading = {loading}/>
       <PlaygroundHero  generatedCode={generatedCode}/>
-      <PlaygroundSetting />
+      {/* <PlaygroundSetting /> */}
       </div>
     </div>
   )

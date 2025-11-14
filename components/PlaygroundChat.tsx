@@ -22,7 +22,7 @@ const PlaygroundChat = ({messages,onSend,loading}:Props) => {
     setInputMessage("");
   }
   return (
-    <div className='w-96 h-[90vh] p-3 border-r-2 flex flex-col justify-between'>
+    <div className='w-96 h-[88vh] p-3 border-r-2 flex flex-col justify-between'>
       <div className=' flex flex-col overflow-y-auto gap-2 mb-3'>
        {messages.length ===0 ? <div className='text-center text-gray-500 '>No messages yet.</div>:
         messages.map((msg,index)=>(
