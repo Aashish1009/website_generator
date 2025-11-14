@@ -56,7 +56,7 @@ const Hero = () => {
           messages
         })
         toast.success("Project created successfully")
-        console.log(result.data)
+      
         router.push(`/playground/${projectId}?frameId=${frameId}`);
         setloading(false);
       } catch (error) {

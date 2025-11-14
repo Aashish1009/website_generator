@@ -23,7 +23,7 @@ const PlaygroundChat = ({messages,onSend,loading}:Props) => {
   }
   return (
     <div className='w-96 h-[90vh] p-3 border-r-2 flex flex-col justify-between'>
-      <div className=' flex flex-col overflow-y-auto gap-2'>
+      <div className=' flex flex-col overflow-y-auto gap-2 mb-3'>
        {messages.length ===0 ? <div className='text-center text-gray-500 '>No messages yet.</div>:
         messages.map((msg,index)=>(
           <div key={index} className={`${msg.role==="user"?"justify-end":"justify-start"} flex mb-2`}>
@@ -39,14 +39,14 @@ const PlaygroundChat = ({messages,onSend,loading}:Props) => {
           <span className='text-zinc-800'>working on it</span>
        </div>}
       </div>
-      <div className='flex gap-2 border  p-2 rounded-lg mb-2 items-center'>
+      <div className='flex gap-2 border  p-2 rounded-lg mb-2 items-center '>
         <textarea
        placeholder='Type your message...'
-       className='w-full h-24 focus:outline-none focus:ring-0 resize-none  '
+       className='w-full h-24 focus:outline-none focus:ring-0 resize-none border-none  '
        value={inputMessage}
        onChange={(e)=>setInputMessage(e.target.value)}
        />
-      <Button onClick={handleSend}>
+      <Button onClick={handleSend} >
         <ArrowUp />
       </Button>
         
