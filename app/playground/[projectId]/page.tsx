@@ -4,9 +4,10 @@ import PlaygroundHeader from '@/components/PlaygroundHeader'
 import PlaygroundHero from '@/components/PlaygroundHero'
 import PlaygroundSetting from '@/components/PlaygroundSetting'
 import axios from 'axios';
-import { previousDay, set } from 'date-fns';
+import { Html } from 'next/document';
 import { useParams, useSearchParams } from 'next/navigation'
 import React, { useEffect } from 'react'
+import { toast } from 'sonner';
 
 export type Frame ={
     frameId: string;
@@ -20,67 +21,95 @@ export type Messages={
     content: string;
 }
 
-const prompt = `inputMessage: {inputMessage}
+const prompt = `User Input: {inputMessage}
 
-Instructions:
+You have ONLY TWO MODES:
 
-1. If the user input is explicitly asking to generate 
-code, design, or HTML/CSS/JS output (e.g., "Create a 
-landing page", "Build a dashboard", "Generate HTML +
-Tailwind CSS code"), then:
+====================================================
+🔥 MODE 1: CODE GENERATION MODE
+Trigger this mode ONLY IF the user input clearly asks 
+to create, build, generate, design, or output anything 
+related to:
 
-    - Generate a complete HTML Tailwind CSS code using 
-      Flowbite UI components.
-    - Use a modern design with **blue as the primary 
-      color theme**.
-    - Only include the <body> content (do not add 
-      <head> or <title>).
-    - Make it fully responsive for all screen sizes.
-    - All primary components must match the theme 
-      color.
-    - Add proper padding and margin for each element.
-    - Components should be independent; do not connect 
-      them.
-    - Use placeholders for all images:
-        - Light mode:
-          https://community.softr.io/uploads/db9110/original/2X/7/746e0e7e382d0ff5d7773ca9a87e6f6f8817a6a8.jpeg
-        - Dark mode:
-          https://www.cibakery.com/wp-content/uploads/2015/12/placeholder-3.jpg
-    - Add alt tag describing the image prompt.
-    - Use the following libraries/components where appropriate:
-        - FontAwesome icons (fa fa-)
-        - Flowbite UI components: buttons, modals, 
-          forms, tables, tabs, alerts, cards, dialogs, 
-          dropdowns, accordions, etc.
-        - Chart.js for charts & graphs
-        - Swiper.js for sliders/carousels
-        - Tippy.js for tooltips & popovers
-    - Include interactive components like modals, 
-      dropdowns, and accordions.
-    - Ensure proper spacing, alignment, hierarchy, and
-      theme consistency.
-    - Ensure charts are visually appealing and match 
-      the theme color.
-    - Header menu options should be spread out and not 
-      connected.
-    - Do not include broken links.
-    - Do not add any extra text before or after the 
-      HTML code.
+- HTML
+- Tailwind CSS
+- Flowbite components
+- UI/UX design
+- Webpages
+- Sections
+- Components
+- Templates
+- Dashboards
+- Forms
+- Landing pages
+- Hero sections
+- Cards
+- Swipers/sliders
+- Charts/graphs
+- Layouts
+- Frontend code
+- Web design
 
-2. If the user input is **general text or greetings** 
-   (e.g., "Hi", "Hello", "How are you?") **or does not 
-   explicitly ask to generate code**, then:
+If ANY of these keywords appear OR the user intent is 
+to build something, you MUST enter CODE MODE.
 
-    - Respond with a simple, friendly text message 
-      instead of generating any code.
+When in CODE MODE:
 
-Example:
+1. Generate COMPLETE HTML code (ONLY the <body> content).
+2. Use Tailwind CSS + Flowbite components.
+3. Use **blue as the primary color theme**.
+4. Make everything fully responsive.
+5. Add proper spacing (padding + margin).
+6. Components must be standalone (not connected).
+7. Use image placeholders:
 
-- User: "Hi" → Response: "Hello! How can I help you 
-  today?"
-- User: "Build a responsive landing page with Tailwind 
-  CSS" → Response: [Generate full HTML code as per 
-  instructions above]`
+   Light mode:
+   https://community.softr.io/uploads/db9110/original/2X/7/746e0e7e382d0ff5d7773ca9a87e6f6f8817a6a8.jpeg
+
+   Dark mode:
+   https://www.cibakery.com/wp-content/uploads/2015/12/placeholder-3.jpg
+
+8. Add proper alt text for images.
+9. Use:
+   - FontAwesome (fa fa-)
+   - Flowbite UI components
+   - Chart.js
+   - Swiper.js
+   - Tippy.js
+
+10. Include interactive components 
+    (modals, dropdowns, accordions, tabs, alerts).
+
+11. Do NOT include:
+    - <html>, <head>, <title>
+    - Explanations, notes, markdown, or backticks.
+    - Anything before or after the HTML.
+
+====================================================
+😊 MODE 2: NORMAL CHAT MODE
+Trigger this if:
+- The user greets you ("hi", "hello", "hey")
+- The user is talking generally
+- The user is NOT asking for code or UI generation
+
+When in Normal Chat Mode:
+- Reply with a short, friendly text answer.
+- Do NOT generate any HTML or code.
+
+====================================================
+
+STRICT RULE:
+If you enter CODE MODE, the response MUST start with:
+\`\`\`html
+always start with these three backticks and the word "html"
+Never write explanations or text outside the code block.
+'
+
+FOLLOW THE RULES STRICTLY.
+Always choose the correct mode.
+`;
+
+
 
 
 const page = () => {
@@ -99,7 +128,11 @@ const page = () => {
     const getFrameDetails = async()=>{
       const result = await axios.get(`/api/frames?frameId=${frameId}&projectId=${projectId}`);
       setFrameDetail(result.data);
-      console.log(result.data)
+      const designcode = result.data.designCode;
+       const index = designcode.indexOf("```html") + 7;
+        const newcode = designcode.slice(index);
+        setGeneratedCode(newcode);
+     
       if(result.data?.chatMessages?.length==1){
         const usermsg = result.data.chatMessages[0].content;
         sendMessage(usermsg);
@@ -111,6 +144,7 @@ const page = () => {
 
     const sendMessage = async(inputMessage:string)=>{
        setLoading(true);
+        setGeneratedCode("");
        setMessages((prevMessages)=>[...prevMessages, {role:'user', content: inputMessage}]);
 
       const response = await fetch("/api/ai-model", {
@@ -131,6 +165,7 @@ const page = () => {
       if (done) break;
       const chunk = decoder.decode(value,{ stream: true });
       aimessage += chunk;
+      console.log(aimessage);
       
       if(!iscode && aimessage.includes("```html")){
         iscode = true;
@@ -140,18 +175,22 @@ const page = () => {
       }else if(iscode){
         setGeneratedCode((prev)=> prev + chunk);
       }
+       
     }
-     if(!iscode){
-        setMessages((prevMessages:any)=> 
-          [...prevMessages,{role:'assistant', content: aimessage}]
-        )
-    }else{
-         setMessages((prevMessages:any)=> [
-          ...prevMessages,{role:'assistant', content: "your code is ready"}
-        ])
-    }
+  
+   if(!iscode){
+    setMessages((prevMessages:any)=> 
+      [...prevMessages,{role:'assistant', content: aimessage}]
+    )
+}else{
+     setMessages((prevMessages:any)=> [
+      ...prevMessages,{role:'assistant', content: "your code is ready"}
+    ])
+}
     setLoading(false);
   }
+
+
 
   useEffect(()=>{
 if(messages.length >1 && !loading){
@@ -159,21 +198,40 @@ if(messages.length >1 && !loading){
 }
   },[messages])
 
+  useEffect(()=>{
+    if(generatedCode.length>10){
+        savegenratedCode(generatedCode);
+        toast.success("Design code saved successfully");
+    }
+  },[generatedCode])
+
+
+
+  const savegenratedCode = async (code:string)=>{
+    const result = await axios.put('/api/frames',{
+        frameId,
+        designCode:code,
+        projectId
+    })
+   
+    
+  }
+
   const saveMessages = async ()=>{
     const result=await axios.put('/api/chats',{
         messages,
         frameId
     })
-    console.log(result.data)
+    
   }
     
   return (
-    <div>
+    <div >
       <PlaygroundHeader />
       <div className='flex'>
       <PlaygroundChat  messages={messages||[]} onSend={(inputMessage:string) =>sendMessage(inputMessage)}
         loading = {loading}/>
-      <PlaygroundHero />
+      <PlaygroundHero  generatedCode={generatedCode}/>
       <PlaygroundSetting />
       </div>
     </div>
